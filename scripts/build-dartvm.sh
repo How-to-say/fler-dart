@@ -551,7 +551,19 @@ if [ "$VER_MAJOR" -ge 3 ]; then
 fi
 if [ "$VER_MAJOR" -ge 3 ] && [ "$VER_MINOR" -ge 6 ]; then
     VERSION_DEFINES="$VERSION_DEFINES -DUNIFORM_INTEGER_ACCESS=ON"
+fi
+
+# 根据实际 SDK 头文件判断，避免版本判断漏掉兼容宏。
+OBJECT_STORE_HEADER="$DARTVM_INCLUDE_DIR/vm/object_store.h"
+if [ ! -f "$OBJECT_STORE_HEADER" ]; then
+    echo "ERROR: Missing header: $OBJECT_STORE_HEADER"
+    exit 1
+fi
+
+if ! grep -q 'build_generic_method_extractor_code)' "$OBJECT_STORE_HEADER"; then
     VERSION_DEFINES="$VERSION_DEFINES -DNO_METHOD_EXTRACTOR_STUB=ON"
+else
+    VERSION_DEFINES="$VERSION_DEFINES -DNO_METHOD_EXTRACTOR_STUB=OFF"
 fi
 # NO_INIT_LATE_STATIC_FIELD: only for SDKs WITHOUT a separate
 # InitLateStaticFieldStub enumerator (pch.h maps it onto InitStaticFieldStub).
